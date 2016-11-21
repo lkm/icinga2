@@ -54,7 +54,9 @@ def check_table(table):
     return output
 
 def get_rancher_ip(host_id, access_key, secret_key):
-    pipe = Popen('rancher --access-key=' + access_key + ' --secret-key=' + secret_key + ' --url https://rancher.bookbooncloud.com ps -c | grep api_database | grep ' + host_id + '| awk \'{print $6}\'', shell=True, stdout=PIPE)
+    command_execute = 'rancher --access-key={0} --secret-key={1} --url https://rancher.bookbooncloud.com ps -c | grep api_database | grep {2}| awk \'{{print $6}}\''.format(access_key, secret_key, host_id)
+
+    pipe = Popen(command_execute, shell=True, stdout=PIPE)
     slaveHost = pipe.stdout.readline();
 
     if not slaveHost:
@@ -82,15 +84,16 @@ def main(argv):
     output = ""
 
     try:
-        opts, args = getopt.getopt(argv, "hd:m:u:p:s:U:P:",
-                                   ["master-host=", "master-user=", "master-password=", "slave-host=", "slave-user=",
-                                    "slave-password=,rancher-key=,rancher-secret="])
-    except getopt.GetoptError:
-        print 'test.py -i <inputfile> -o <outputfile>'
+        opts, args = getopt.getopt(argv, "hd:m:u:p:s:U:P:r:R:",
+                                   ["database=", "master-host=", "master-user=", "master-password=", "slave-host=", "slave-user=",
+                                    "slave-password=","rancher-key=","rancher-secret="])
+    except getopt.GetoptError, e:
+        print 'check_db_sync.py: ' + str(e)
         sys.exit(2)
+
     for opt, arg in opts:
         if opt == '-h':
-            print 'test.py --database [-d] <database> --master-host [-m] <hostname> --master-user [-u] <user> --master-password [-p] <password> --slave-host [-s] <hostname> --slave-user [-U] <user> --slave-password [-P] <password> '
+            print 'check_db_sync.py --database [-d] <database> --master-host [-m] <hostname> --master-user [-u] <user> --master-password [-p] <password> --slave-host [-s] <hostname> --slave-user [-U] <user> --slave-password [-P] <password> '
             sys.exit()
         elif opt in ("-d", "--database"):
             database = arg
@@ -104,11 +107,11 @@ def main(argv):
             slave_host = arg
         elif opt in ("-U", "--slave-user"):
             slave_user = arg
-        elif opt in ("-P", "--slave-user"):
+        elif opt in ("-P", "--slave-password"):
             slave_password = arg
-        elif opt in ("--rancher-key"):
+        elif opt in ("-r", "--rancher-key"):
             rancher_key = arg
-        elif opt in ("--rancher-secret"):
+        elif opt in ("-R", "--rancher-secret"):
             rancher_secret = arg
     
     slaveHost = get_rancher_ip(slave_host, rancher_key, rancher_secret);

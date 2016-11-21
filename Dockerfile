@@ -46,6 +46,9 @@ RUN wget --no-cookies "https://github.com/Icinga/icingaweb2-module-director/arch
   rm -rf /etc/icingaweb2/modules
 
 ADD nagios/* /usr/lib/nagios/plugins/
+ADD rancher /usr/bin/rancher
+
+RUN chmod +s /usr/bin/rancher
 
 EXPOSE 80 443 5665
 
