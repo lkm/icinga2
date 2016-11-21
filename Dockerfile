@@ -27,7 +27,8 @@ RUN wget --quiet -O - https://packages.icinga.org/icinga.key | apt-key add - && 
 ADD content/ /
 
 RUN chmod u+x /opt/supervisor/mysql_supervisor /opt/supervisor/icinga2_supervisor /opt/supervisor/apache2_supervisor && \
-  chmod u+x /opt/run
+  chmod u+x /opt/run && \
+  chmod +s /bin/ping*
 
 # Temporary hack to get icingaweb2 modules via git
 RUN mkdir -p /etc/icingaweb2.dist/enabledModules && \
