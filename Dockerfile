@@ -16,7 +16,7 @@ ENV ICINGA_DIRECTOR_VERSION 1.2.0
 
 RUN apt-get -qq update && \
   apt-get -qqy upgrade && \
-  apt-get -qqy install --no-install-recommends bash sudo procps ca-certificates wget supervisor mysql-server mysql-client apache2 pwgen unzip php5-ldap ssmtp mailutils vim php5-curl
+  apt-get -qqy install --no-install-recommends bash sudo procps ca-certificates wget supervisor mysql-server mysql-client apache2 pwgen unzip php5-ldap ssmtp mailutils vim php5-curl python-mysqldb-dbg libnet-snmp-perl
 
 RUN wget --quiet -O - https://packages.icinga.org/icinga.key | apt-key add - && \
   echo "deb http://packages.icinga.org/debian icinga-jessie main" >> /etc/apt/sources.list && \
@@ -46,6 +46,8 @@ RUN wget --no-cookies "https://github.com/Icinga/icingaweb2-module-director/arch
   cp -R /etc/icingaweb2/* /etc/icingaweb2.dist/ && \
   cp -R /etc/icinga-web/* /etc/icinga-web.dist/ && \
   cp -R /etc/icinga2 /etc/icinga2.dist
+
+ADD nagios/* /usr/lib/nagios/plugins/
 
 EXPOSE 80 443 5665
 
