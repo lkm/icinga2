@@ -10,6 +10,8 @@ ENV ICINGA2_FEATURE_GRAPHITE false
 ENV ICINGA2_FEATURE_GRAPHITE_HOST graphite
 ENV ICINGA2_FEATURE_GRAPHITE_PORT 2003
 
+ENV ICINGA_DIRECTOR_VERSION 1.2.0
+
 RUN apt-get -qq update && \
   apt-get -qqy upgrade && \
   apt-get -qqy install --no-install-recommends bash sudo procps ca-certificates wget supervisor mysql-server mysql-client apache2 pwgen unzip php5-mysql php5-ldap ssmtp mailutils vim php5-curl
@@ -33,9 +35,9 @@ RUN mkdir -p /etc/icingaweb2.dist/enabledModules && \
   rm -rf /tmp/icingaweb2.zip /tmp/icingaweb2
 
 # Icinga Director
-RUN wget --no-cookies "https://github.com/Icinga/icingaweb2-module-director/archive/master.zip" -O /tmp/director.zip && \
+RUN wget --no-cookies "https://github.com/Icinga/icingaweb2-module-director/archive/v${ICINGA_DIRECTOR_VERSION}.zip" -O /tmp/director.zip && \
   unzip /tmp/director.zip -d "/tmp/director" && \
-  cp -R /tmp/director/icingaweb2-module-director-master/* /etc/icingaweb2.dist/modules/director/ && \
+  cp -R /tmp/director/icingaweb2-module-director-${ICINGA_DIRECTOR_VERSION}/* /etc/icingaweb2.dist/modules/director/ && \
   rm -rf /tmp/director.zip /tmp/director && \
   cp -R /etc/icingaweb2/* /etc/icingaweb2.dist/ && \
   cp -R /etc/icinga2 /etc/icinga2.dist && \
