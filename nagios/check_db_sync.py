@@ -54,7 +54,7 @@ def check_table(table):
     return output
 
 def get_rancher_ip(host_id, access_key, secret_key):
-    command_execute = 'rancher --access-key={0} --secret-key={1} --url https://rancher.bookbooncloud.com ps -c | grep api_database | grep {2}| awk \'{{print $6}}\''.format(access_key, secret_key, host_id)
+    command_execute = 'rancher --access-key={0} --secret-key={1} --url https://rancher.bookbooncloud.com ps -c | grep api-database | grep {2}| awk \'{{print $6}}\''.format(access_key, secret_key, host_id)
 
     pipe = Popen(command_execute, shell=True, stdout=PIPE)
     slaveHost = pipe.stdout.readline();
