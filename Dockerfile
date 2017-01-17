@@ -11,6 +11,7 @@ ENV ICINGA2_FEATURE_GRAPHITE_HOST graphite
 ENV ICINGA2_FEATURE_GRAPHITE_PORT 2003
 
 ENV ICINGA_DIRECTOR_VERSION 1.2.0
+ENV ICINGA2_WEB_VERSION 2.4.0
 
 RUN apt-get -qq update && \
   apt-get -qqy upgrade && \
@@ -24,16 +25,18 @@ RUN wget --quiet -O - https://packages.icinga.org/icinga.key | apt-key add - && 
   apt-get clean
 
 ADD content/ /
+ADD nagios/* /usr/lib/nagios/plugins/
+ADD rancher /usr/bin/rancher
 
 RUN chmod u+x /opt/supervisor/mysql_supervisor /opt/supervisor/icinga2_supervisor /opt/supervisor/apache2_supervisor /opt/run && \
-  chmod +s /bin/ping*
+  chmod +s /bin/ping* /usr/bin/rancher
 
 # Temporary hack to get icingaweb2 modules via git
 RUN mkdir -p /etc/icingaweb2.dist/enabledModules && \
-  wget --no-cookies "https://github.com/Icinga/icingaweb2/archive/v2.3.4.zip" -O /tmp/icingaweb2.zip && \
-  unzip /tmp/icingaweb2.zip "icingaweb2-2.3.4/modules/doc/*" "icingaweb2-2.3.4/modules/monitoring/*" -d "/tmp/icingaweb2" && \
-  cp -R /tmp/icingaweb2/icingaweb2-2.3.4/modules/monitoring /etc/icingaweb2.dist/modules/ && \
-  cp -R  /tmp/icingaweb2/icingaweb2-2.3.4/modules/doc /etc/icingaweb2.dist/modules/ && \
+  wget --no-cookies "https://github.com/Icinga/icingaweb2/archive/v${ICINGA2_WEB_VERSION}.zip" -O /tmp/icingaweb2.zip && \
+  unzip /tmp/icingaweb2.zip "icingaweb2-${ICINGA2_WEB_VERSION}/modules/doc/*" "icingaweb2-${ICINGA2_WEB_VERSION}/modules/monitoring/*" -d "/tmp/icingaweb2" && \
+  cp -R /tmp/icingaweb2/icingaweb2-${ICINGA2_WEB_VERSION}/modules/monitoring /etc/icingaweb2.dist/modules/ && \
+  cp -R  /tmp/icingaweb2/icingaweb2-${ICINGA2_WEB_VERSION}/modules/doc /etc/icingaweb2.dist/modules/ && \
   rm -rf /tmp/icingaweb2.zip /tmp/icingaweb2
 
 # Icinga Director
@@ -44,11 +47,6 @@ RUN wget --no-cookies "https://github.com/Icinga/icingaweb2-module-director/arch
   cp -R /etc/icingaweb2/* /etc/icingaweb2.dist/ && \
   cp -R /etc/icinga2 /etc/icinga2.dist && \
   rm -rf /etc/icingaweb2/modules
-
-ADD nagios/* /usr/lib/nagios/plugins/
-ADD rancher /usr/bin/rancher
-
-RUN chmod +s /usr/bin/rancher
 
 EXPOSE 80 443 5665
 
