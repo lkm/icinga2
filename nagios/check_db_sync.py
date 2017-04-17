@@ -10,13 +10,17 @@ tables_to_check = ['Advert', 'Author', 'Answer', 'Application', 'Book', 'Exam', 
 master_connection = None
 slave_connection = None
 
+OK_CODE = 0
+WARNING_CODE = 1
+CRITICAL_CODE = 2
+UNKNOWN_CODE = 3
 
 def initiate_connection(hostname, database, user, password):
     try:
         return mdb.connect(hostname, user, password, database)
     except mdb.Error, e:
         print "CRITICAL - Connection error %d: %s" % (e.args[0], e.args[1])
-        sys.exit(2)
+        sys.exit(CRITICAL_CODE)
 
 
 def check_table(table):
@@ -61,7 +65,7 @@ def get_rancher_ip(host_id, access_key, secret_key):
 
     if not slaveHost:
         print "CRITICAL - Could not resolve database container on %s" % (host_id)
-        sys.exit(2)
+        sys.exit(CRITICAL_CODE)
     return slaveHost
 
 def main(argv):
@@ -89,7 +93,7 @@ def main(argv):
                                     "slave-password=","rancher-key=","rancher-secret="])
     except getopt.GetoptError, e:
         print 'check_db_sync.py: ' + str(e)
-        sys.exit(2)
+        sys.exit(CRITICAL_CODE)
 
     for opt, arg in opts:
         if opt == '-h':
@@ -123,6 +127,7 @@ def main(argv):
 
     if output:
         print "CRITICAL - Not properly synchronized %s" % output
+        sys.exit(CRITICAL_CODE)
     else:
         print "OK - tables %s are synchronized" % tables_to_check
 
