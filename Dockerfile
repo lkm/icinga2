@@ -1,7 +1,7 @@
 # Dockerfile for icinga2 with icingaweb2
 # https://github.com/jjethwa/icinga2
 
-FROM debian:jessie
+FROM debian:stretch
 
 MAINTAINER Jordan Jethwa
 
@@ -10,18 +10,25 @@ ENV ICINGA2_FEATURE_GRAPHITE false
 ENV ICINGA2_FEATURE_GRAPHITE_HOST graphite
 ENV ICINGA2_FEATURE_GRAPHITE_PORT 2003
 
-ENV ICINGA_DIRECTOR_VERSION 1.3.1
-ENV ICINGA2_WEB_VERSION 2.4.0
+ENV ICINGA_DIRECTOR_VERSION 1.4.3
+ENV ICINGA2_WEB_VERSION 2.5.1
+ENV NAGIOS_PLUGINS_RABBITMQ_VERSION 2.0.3
 
-RUN apt-get -qq update && \
-  apt-get -qqy upgrade && \
-  apt-get -qqy install --no-install-recommends bash sudo procps ca-certificates wget supervisor mysql-server mysql-client apache2 pwgen unzip php5-mysql php5-ldap ssmtp mailutils vim php5-curl python-mysqldb-dbg libnet-snmp-perl
-
-
-RUN wget --quiet -O - https://packages.icinga.org/icinga.key | apt-key add - && \
-  echo "deb http://packages.icinga.org/debian icinga-jessie main" >> /etc/apt/sources.list && \
+RUN \
   apt-get -qq update && \
-  apt-get -qqy install --no-install-recommends icinga2 icinga2-ido-mysql nagios-plugins icingaweb2 icingacli curl && \
+  apt-get -qqy upgrade && \
+  apt-get install -yq wget gnupg apt-transport-https && \
+  echo deb https://packages.sury.org/php/ stretch main | tee -a /etc/apt/sources.list.d/php.list && \
+  wget -qO - https://packages.sury.org/php/apt.gpg | apt-key add - && \
+  apt-get update && \
+  apt-get -qqy install --no-install-recommends bash sudo procps ca-certificates supervisor mariadb-server mariadb-client apache2 pwgen unzip php7.1 php7.1-cli php7.1-mysql php7.1-xml php7.1-common php7.1-ldap ssmtp mailutils vim php7.1-curl python-mysqldb-dbg libnet-snmp-perl
+
+
+RUN \
+  echo deb http://packages.icinga.com/debian icinga-stretch main | tee -a /etc/apt/sources.list.d/icinga.list && \
+  wget -qO - https://packages.icinga.org/icinga.key | apt-key add - && \
+  apt-get -qq update && \
+  apt-get -qqy install --no-install-recommends icinga2 icinga2-ido-mysql nagios-plugins icingaweb2 icingacli curl libjson-perl liblwp-protocol-https-perl && \
   apt-get clean
 
 ADD content/ /
@@ -47,6 +54,11 @@ RUN wget --no-cookies "https://github.com/Icinga/icingaweb2-module-director/arch
   cp -R /etc/icingaweb2/* /etc/icingaweb2.dist/ && \
   cp -R /etc/icinga2 /etc/icinga2.dist && \
   rm -rf /etc/icingaweb2/modules
+
+RUN wget --no-cookies "https://github.com/nagios-plugins-rabbitmq/nagios-plugins-rabbitmq/releases/download/${NAGIOS_PLUGINS_RABBITMQ_VERSION}/nagios-plugins-rabbitmq-${NAGIOS_PLUGINS_RABBITMQ_VERSION}.libperl-monitoring-plugin.zip" -O /tmp/nagios-plugins-rabbitmq.zip && \
+  unzip /tmp/nagios-plugins-rabbitmq.zip -d "/tmp/nagios-plugins-rabbitmq" && \
+  cp -R /tmp/nagios-plugins-rabbitmq/scripts /usr/lib/nagios/plugins-rabbitmq && \
+  rm -rf /tmp/nagios-plugins-rabbitmq.zip /tmp/nagios-plugins-rabbitmq
 
 EXPOSE 80 443 5665
 
