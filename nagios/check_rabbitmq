@@ -1,0 +1,58 @@
+#!/bin/bash
+
+usage() { echo "Usage: $0 [-s <45|90>] [-p <string>]" 1>&2; exit 1; }
+
+RABBIT_USER=guest
+RABBIT_PASSWORD=guest
+
+while getopts a:s:m:H:E:e:u:p: option
+do
+        case "${option}"
+        in
+                a)
+                    RANCHER_ACCESS_KEY=${OPTARG}
+                    ;;
+                s)
+                    RANCHER_SECRET_KEY=${OPTARG}
+                    ;;
+                m)
+                    GREP_MATCH=${OPTARG}
+                    ;;
+                H)
+                    RANCHER_HOST_ID=$OPTARG
+                    ;;
+                E)
+                    RABBIT_ENDPOINT=$OPTARG
+                    ;;
+                e)
+                    EXTRA_OPTIONS=${OPTARG}
+                    ;;
+                u)
+                    RABBIT_USER=${OPTARG}
+                    ;;
+                p)
+                    RABBIT_PASSWORD=${OPTARG}
+                    ;;
+                *)
+                    usage
+                    ;;
+        esac
+done
+
+if [ -z "${RANCHER_ACCESS_KEY}" ] || [ -z "${RANCHER_SECRET_KEY}" ] || [ -z "${GREP_MATCH}" ] || [ -z "${RANCHER_HOST_ID}" ] || [ -z "${RABBIT_ENDPOINT}" ]; then
+    echo "CRITICAL - Invalid or missing paremeters"
+    exit 1
+fi
+
+INSTANCE_IP=`rancher --access-key=${RANCHER_ACCESS_KEY} --secret-key=${RANCHER_SECRET_KEY} --url https://rancher.bookbooncloud.com ps -c | grep -E ${GREP_MATCH} | grep ${RANCHER_HOST_ID}| awk '{print $6}'`
+
+if [ -z "$INSTANCE_IP" ]; then
+    echo "CRITICAL - Could not resolve database container on $HOSTNAME"
+    exit 1
+fi
+
+#if [ -z "$EXTRA_OPTIONS" ]; then
+#    EXTRA_OPTIONS="--${EXTRA_OPTIONS}"
+#fi
+
+/usr/lib/nagios/plugins-rabbitmq/check_rabbitmq_${RABBIT_ENDPOINT} -H $INSTANCE_IP:15672 -u $RABBIT_USER -p $RABBIT_PASSWORD $EXTRA_OPTIONS
